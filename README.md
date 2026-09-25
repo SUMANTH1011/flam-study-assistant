@@ -1,147 +1,149 @@
 # FLAM AI Study Assistant
 
-[![Node.js](https://img.shields.io/badge/Node.js-18%2B-green)](https://nodejs.org/) [![React](https://img.shields.io/badge/React-18%2B-blue)](https://react.dev/) [![Gemini API](https://img.shields.io/badge/Google%20Gemini-API-orange)](https://ai.google.dev/)
+<p align="center">
+  <img src="https://img.shields.io/badge/Node.js-18%2B-5FA04E?logo=node.js&logoColor=white" alt="Node.js 18+" />
+  <img src="https://img.shields.io/badge/React-18-61DAFB?logo=react&logoColor=black" alt="React 18" />
+  <img src="https://img.shields.io/badge/Gemini-API-8A2BE2" alt="Gemini API" />
+  <img src="https://img.shields.io/badge/License-MIT-green" alt="MIT License" />
+</p>
 
-An AI-powered interactive study tool that transforms free-form study topics into structured flashcard decks for the FLAM Frontend Internship Assignment.
+An AI-powered study companion that transforms a free-form topic into a structured flashcard deck. Built for the FLAM Frontend Internship Assignment, this project focuses on safe AI integration, structured response validation, and a clean interactive learning experience.
 
-This is intentionally not a chatbot. The app demonstrates secure AI integration by sending requests to a backend, validating the model response, and rendering only trusted structured data as interactive flashcards.
+This app is intentionally not a chatbot. Instead of trusting raw model output, it validates the AI response server-side and client-side before rendering anything to the UI.
 
 ---
 
-## Project Overview
+## Overview
 
-The AI Study Assistant helps users turn a study topic into an interactive deck of flashcards.
+The FLAM AI Study Assistant helps users turn learning topics into quick, engaging flashcard reviews.
 
-### Example
-
-A user can enter:
+### Example input
 
 > Explain binary search and its time complexity.
 
-The AI generates structured data containing:
+The app generates structured output containing:
 
-- A topic title
-- Multiple flashcards
-- Questions
-- Answers
-- Difficulty levels
+- a topic title
+- multiple flashcards
+- questions and answers
+- difficulty levels
 
-The React app then allows the user to:
+Users can then:
 
-- Flip between questions and answers
-- Navigate between flashcards
-- Mark cards as known
-- Mark cards for review
-- Track the current card
-- Retry failed AI requests
+- flip cards to reveal answers
+- move between cards
+- mark cards as known
+- mark cards for review
+- track the current card
+- retry failed AI requests
 
 ---
 
-## Features
+## Key Features
 
 ### AI-powered generation
 
-- Free-form text input for study topics
+- free-form topic input
 - Gemini API integration
-- Structured JSON generation
-- 5–10 flashcards per request
+- structured JSON output
+- 5–10 flashcards per generation request
 
 ### Interactive flashcards
 
-- Click to reveal answers
-- Previous / Next navigation
-- Easy / Medium / Hard difficulty indicators
-- "Know" and "Review" actions
-- Current card progress
+- click to reveal answers
+- previous/next navigation
+- easy / medium / hard difficulty labels
+- known and review tracking
+- progress indicator for current card
 
 ### Defensive AI handling
 
-The application does not directly trust LLM output.
-
-Responses go through:
+The app does not trust LLM output blindly. Data goes through multiple validation layers:
 
 1. JSON parsing
-2. Backend validation
-3. Frontend validation
-4. React state
+2. backend validation
+3. frontend validation
+4. state update
 5. UI rendering
 
-The application handles:
+It handles:
 
-- Empty responses
-- Malformed JSON
-- Invalid response structures
-- Invalid flashcard fields
+- empty responses
+- malformed JSON
+- invalid response shapes
+- missing or invalid flashcard fields
 - Gemini 503 errors
 - Gemini 429 errors
-- Authentication errors
-- Model availability errors
-- Stale frontend requests
+- authentication failures
+- model unavailability issues
+- stale request responses
 
 ### Secure API architecture
 
-The Gemini API key is stored on the backend and is never exposed to the React application.
+The Gemini API key is stored only on the backend and is never exposed to the React application.
 
 ---
 
 ## Architecture
 
 ```text
-                        User
+                         User
+                           │
+                           ▼
+                 ┌──────────────────┐
+                 │   React Frontend │
+                 │                  │
+                 │ PromptInput      │
+                 │ FlashcardDeck    │
+                 │ LoadingState     │
+                 │ ErrorState       │
+                 └────────┬─────────┘
+                          │
+                          │ POST /api/generate
+                          ▼
+                 ┌──────────────────┐
+                 │  Vite Dev Proxy  │
+                 └────────┬─────────┘
                           │
                           ▼
-                ┌──────────────────┐
-                │   React Frontend │
-                │                  │
-                │ PromptInput      │
-                │ FlashcardDeck    │
-                │ LoadingState     │
-                │ ErrorState       │
-                └────────┬─────────┘
-                         │
-                         │ POST /api/generate
-                         ▼
-                ┌──────────────────┐
-                │  Vite Dev Proxy  │
-                └────────┬─────────┘
-                         │
-                         ▼
-                ┌──────────────────┐
-                │ Express Backend  │
-                │                  │
-                │ API key stored   │
-                │ securely in .env │
-                └────────┬─────────┘
-                         │
-                         ▼
-                ┌──────────────────┐
-                │    Gemini API    │
-                │                  │
-                │ Structured JSON  │
-                └────────┬─────────┘
-                         │
-                         ▼
-                ┌──────────────────┐
-                │ Backend Parsing  │
-                │ + Validation     │
-                └────────┬─────────┘
-                         │
-                         ▼
-                ┌──────────────────┐
-                │ Frontend         │
-                │ Validation       │
-                └────────┬─────────┘
-                         │
-                         ▼
-                ┌──────────────────┐
-                │ Interactive      │
-                │ Flashcard UI     │
-                └──────────────────┘
+                 ┌──────────────────┐
+                 │ Express Backend  │
+                 │                  │
+                 │ API key stored   │
+                 │ securely in .env │
+                 └────────┬─────────┘
+                          │
+                          ▼
+                 ┌──────────────────┐
+                 │    Gemini API    │
+                 │                  │
+                 │ Structured JSON  │
+                 └────────┬─────────┘
+                          │
+                          ▼
+                 ┌──────────────────┐
+                 │ Backend Parsing  │
+                 │ + Validation     │
+                 └────────┬─────────┘
+                          │
+                          ▼
+                 ┌──────────────────┐
+                 │ Frontend         │
+                 │ Validation       │
+                 └────────┬─────────┘
+                          │
+                          ▼
+                 ┌──────────────────┐
+                 │ Interactive      │
+                 │ Flashcard UI     │
+                 └──────────────────┘
 ```
 
-### Structured Data Contract
+---
 
-The AI is instructed to return data in the following shape:
+## Response Contract
+
+The AI is instructed to return structured JSON in this format:
 
 ```json
 {
@@ -149,77 +151,80 @@ The AI is instructed to return data in the following shape:
   "cards": [
     {
       "question": "What is binary search?",
-      "answer": "Binary search finds an element in a sorted collection by repeatedly dividing the search range.",
+      "answer": "Binary search repeatedly divides a sorted collection to find an element efficiently.",
       "difficulty": "easy"
     }
   ]
 }
 ```
 
-Each flashcard must contain:
+Each flashcard contains:
 
-- `question` → string
-- `answer` → string
-- `difficulty` → `easy | medium | hard`
+- `question`: string
+- `answer`: string
+- `difficulty`: `easy | medium | hard`
 
-The response is validated before it is allowed to reach the UI.
+The data is validated before it is allowed to reach the UI.
 
-### Tech Stack
+---
 
-#### Frontend
+## Tech Stack
+
+### Frontend
+
 - React
 - Vite
-- React Hooks
 - JavaScript
 - CSS
+- React Hooks
 
-#### Backend
+### Backend
+
 - Node.js
 - Express
 - CORS
 - dotenv
 
-#### AI
+### AI
+
 - Google Gemini API
 - `@google/genai`
 
-#### Development
+### Development
+
 - Git
 - GitHub
 - VS Code
 
-### Project Structure
+---
+
+## Project Structure
 
 ```text
 flam-study-assistant/
-│
 ├── public/
-│
 ├── server/
 │   └── server.js
-│
 ├── src/
 │   ├── components/
 │   │   ├── ErrorState.jsx
 │   │   ├── FlashcardDeck.jsx
 │   │   ├── LoadingState.jsx
 │   │   └── PromptInput.jsx
-│   │
 │   ├── lib/
 │   │   ├── api.js
 │   │   └── validateResult.js
-│   │
 │   ├── App.jsx
 │   ├── App.css
 │   ├── index.css
 │   └── main.jsx
-│
 ├── .env.example
 ├── .gitignore
 ├── package.json
 ├── package-lock.json
 ├── vite.config.js
-└── README.md
+├── README.md
+└── LICENSE
 ```
 
 ---
@@ -228,23 +233,17 @@ flam-study-assistant/
 
 ### Prerequisites
 
-Make sure you have installed:
+Make sure you have:
 
-- Node.js
+- Node.js 18+
 - npm
 - Git
-
-You will also need a Gemini API key.
+- a Gemini API key
 
 ### 1. Clone the repository
 
 ```bash
 git clone https://github.com/SUMANTH1011/flam-study-assistant.git
-```
-
-Move into the project:
-
-```bash
 cd flam-study-assistant
 ```
 
@@ -262,15 +261,17 @@ Create a `.env` file in the project root:
 GEMINI_API_KEY=your_gemini_api_key_here
 ```
 
-Do not commit this file.
+You can also copy the example template:
 
-The repository already includes `.gitignore` protection for `.env`.
+```bash
+cp .env.example .env
+```
 
-A safe template is provided in `.env.example`.
+> Do not commit your `.env` file. It is already ignored by Git.
 
 ### 4. Start the backend
 
-Open a terminal in the project root and run:
+In one terminal, run:
 
 ```bash
 node server/server.js
@@ -278,11 +279,15 @@ node server/server.js
 
 The backend will run on:
 
-`http://localhost:3001`
+```text
+http://localhost:3001
+```
 
-You can verify it by opening:
+Health check:
 
-`http://localhost:3001/api/health`
+```bash
+curl http://localhost:3001/api/health
+```
 
 Expected response:
 
@@ -294,17 +299,17 @@ Expected response:
 
 ### 5. Start the frontend
 
-Open a second terminal:
+In a second terminal, run:
 
 ```bash
 npm run dev
 ```
 
-The Vite development server will normally run at:
+Open the app in your browser at:
 
-`http://localhost:5173`
-
-Open that URL in your browser.
+```text
+http://localhost:5173
+```
 
 ---
 
@@ -312,27 +317,25 @@ Open that URL in your browser.
 
 ### 1. User enters a topic
 
-The user enters free-form text through the study prompt.
-
 Example:
 
 ```text
-Explain CPU scheduling, FCFS, SJF and Round Robin.
+Explain CPU scheduling, FCFS, SJF, and Round Robin.
 ```
 
-### 2. React sends the request
+### 2. Frontend sends a request
 
-The frontend sends:
+The app sends:
 
 ```http
 POST /api/generate
 ```
 
-with:
+with a payload like:
 
 ```json
 {
-  "input": "Explain CPU scheduling, FCFS, SJF and Round Robin."
+  "input": "Explain CPU scheduling, FCFS, SJF, and Round Robin."
 }
 ```
 
@@ -340,133 +343,69 @@ The frontend does not communicate directly with Gemini.
 
 ### 3. Backend calls Gemini
 
-The Express backend receives the request and sends a strict prompt to Gemini.
+The Express backend receives the request and sends a strict prompt to Gemini. The model is instructed to return structured JSON containing flashcards.
 
-The model is instructed to return structured JSON containing flashcards.
+### 4. Response parsing
 
-The Gemini API key remains on the server.
+The backend parses the model response using `JSON.parse()`. Invalid JSON is rejected before it reaches the UI.
 
-### 4. Structured response is parsed
-
-The backend receives the model response and parses it using:
-
-```javascript
-JSON.parse()
-```
-
-Invalid JSON is rejected instead of being rendered.
-
-### 5. Response validation
+### 5. Validation
 
 The backend verifies:
 
-- The response is an object
-- A title exists
+- the response is an object
+- a title exists
 - `cards` is an array
-- At least one card exists
-- Each card contains a question
-- Each card contains an answer
-- Difficulty is valid
+- at least one card exists
+- each card has a question
+- each card has an answer
+- difficulty is valid
 
-The frontend performs another validation pass before rendering.
+The frontend performs a second validation pass before rendering.
 
-### 6. React renders the result
+### 6. UI rendering
 
-Once the data is validated, it is stored in React state and passed to `FlashcardDeck`.
-
-The component manages:
-
-- Current card
-- Flip state
-- Review state
-- Known state
-- Navigation
+Once validated, the data is stored in React state and passed into the flashcard UI.
 
 ---
 
 ## Error Handling
 
-A major focus of the implementation is handling unreliable AI output and network failures.
+A major focus of this project is handling unreliable AI output and network issues.
 
 ### Empty response
 
-If Gemini returns no content:
-
-- The AI returned an empty response.
-- The response is rejected.
+If Gemini returns no usable content, the app rejects it and shows an error state.
 
 ### Malformed JSON
 
-If the model returns invalid JSON:
-
-```json
-{
-  "title": "Binary Search"
-  ...
-}
-```
-
-the backend catches the parsing error and returns an error response rather than allowing the application to crash.
+If the model returns invalid JSON, the backend catches the parse error and responds cleanly instead of crashing the app.
 
 ### Invalid response shape
 
-Valid JSON does not necessarily mean valid application data.
-
-For example:
-
-```json
-{
-  "title": "Binary Search"
-}
-```
-
-This is valid JSON but does not contain flashcards.
-
-The validation layer rejects this response.
+Valid JSON does not automatically mean valid app data. The validation layer rejects responses missing required fields or cards.
 
 ### Gemini 503
 
-A temporary Gemini service failure is handled with retries.
-
-The backend retries temporary 503 responses before returning a user-friendly error.
+Temporary Gemini service failures are retried and surfaced as clear errors.
 
 ### Gemini 429
 
-Rate-limit responses are handled separately and returned as a clear error state.
+Rate limits are handled separately with user-friendly messaging.
 
-### API authentication errors
+### Authentication errors
 
-Authentication and permission errors are detected and converted into an appropriate server response.
-
-### Loading state
-
-While an AI request is running, the interface displays a loading state instead of leaving the user wondering whether the application is working.
+Authentication and permission problems are detected and converted into a server response.
 
 ### Stale responses
 
-Multiple requests can finish in a different order from when they started.
-
-The frontend uses a request ID with `useRef`:
-
-```javascript
-const requestId = useRef(0);
-```
-
-Each request receives an ID.
-
-Only the latest request is allowed to update the UI.
-
-This prevents a slower older request from overwriting a newer result.
+Multiple requests can finish in a different order from which they started. The frontend uses a request ID pattern to ensure only the latest response updates the UI.
 
 ---
 
-## API Security
+## Security
 
-The Gemini API key is stored in `.env` and accessed by the Node.js backend.
-
-The frontend never contains `GEMINI_API_KEY` and never calls Gemini directly.
-
-The request flow is:
+The app follows a secure AI integration model:
 
 ```text
 React
@@ -484,24 +423,20 @@ React
 Gemini
 ```
 
-This prevents the secret API key from being bundled into the browser application.
+This ensures that the secret API key is never bundled into the browser application.
 
 ---
 
-## AI Usage
+## Why This Project Matters
 
-AI development tools were used during implementation for:
+This app demonstrates a practical pattern for building AI-powered features safely:
 
-- Exploring implementation approaches
-- Debugging API integration issues
-- Reviewing React component structure
-- Improving error handling
-- Refining UI and CSS
-- Generating initial implementation suggestions
+- AI output is treated as untrusted input
+- parsing and validation are mandatory
+- application logic uses only verified data
+- secrets remain on the server
 
-The final project structure, integration, validation logic, UI behavior, and implementation were reviewed and tested as part of the project development.
-
-The AI-generated code was not treated as trusted output. The project specifically demonstrates the same principle in its application architecture: AI output is parsed and validated before it is used.
+This is a strong example of defensive integration with external AI services.
 
 ---
 
@@ -509,50 +444,26 @@ The AI-generated code was not treated as trusted output. The project specificall
 
 ### Why React Hooks?
 
-React Hooks provide a simple way to manage:
+React Hooks simplify state management for:
 
-- Input state
-- Loading state
-- Error state
-- Generated results
-- Flashcard navigation
-- Card interaction
-
-The project primarily uses `useState()` and `useRef()`.
+- input values
+- loading state
+- error state
+- generated results
+- flashcard navigation
+- interaction tracking
 
 ### Why a backend proxy?
 
-The assignment explicitly requires that the API key is not exposed in the browser.
-
-The Express backend provides a small API boundary between the frontend and Gemini.
+The assignment explicitly requires that the API key not be exposed in the browser. The Express backend provides a secure boundary between the frontend and Gemini.
 
 ### Why structured JSON?
 
-Raw LLM text is unpredictable and difficult to turn into reliable UI.
-
-Structured JSON allows the application to represent AI output as application data:
-
-```text
-AI output
-   ↓
-JSON
-   ↓
-Validation
-   ↓
-React state
-   ↓
-UI
-```
-
-This makes the AI output usable by normal frontend components.
+Raw AI text is unpredictable. Structured JSON lets the app transform model output into reliable app data.
 
 ### Why validate twice?
 
-The backend validates the response immediately after receiving it from Gemini.
-
-The frontend validates the data again before rendering.
-
-This creates an additional safety boundary between external data and the UI.
+The backend validates immediately after receiving Gemini output, and the frontend validates again before rendering. This creates multiple safety layers between external data and the UI.
 
 ---
 
@@ -562,61 +473,60 @@ This is a small internship assignment project and intentionally does not attempt
 
 Current limitations include:
 
-- No user authentication
-- No persistent user accounts
-- Flashcard progress is not saved after refreshing the page
-- No database
-- No long-term study history
-- No spaced-repetition scheduling
-- AI-generated content may occasionally contain factual inaccuracies
-- Gemini availability and rate limits can affect generation
-- The application currently focuses on flashcards rather than multiple study modes
-- Development currently requires running both frontend and backend processes locally
+- no user authentication
+- no persistent user accounts
+- no saved study progress across refreshes
+- no database
+- no long-term learning history
+- no spaced repetition scheduling
+- occasional factual inaccuracies from AI-generated content
+- dependency on Gemini availability and rate limits
+- local-only development setup
 
 ---
 
 ## Future Improvements
 
-Possible future improvements include:
+Possible enhancements include:
 
-- Persistent study sessions
-- User accounts
-- Spaced-repetition scheduling
-- Quiz mode
+- persistent study sessions
+- user accounts
+- spaced repetition scheduling
+- quiz mode
 - AI-generated explanations
-- Difficulty filtering
-- Search through generated cards
-- Save and reload previous sessions
-- Streaming AI responses
-- Offline support
-- Production deployment
-- Automated tests
-- More robust schema validation
+- difficulty filtering
+- card search and organization
+- save/reload previous sessions
+- streaming AI responses
+- offline support
+- production deployment
+- automated tests
+- stronger schema validation
 
 ---
 
 ## Testing Checklist
 
-Before submission, the following scenarios should be tested:
+Before submission, verify these cases:
 
-- [ ] Normal topic generation
-- [ ] Empty input
-- [ ] Very long input
-- [ ] Loading state
+- [ ] normal topic generation
+- [ ] empty input
+- [ ] very long input
+- [ ] loading state
 - [ ] Gemini 503 response
 - [ ] Gemini 429 response
-- [ ] Malformed JSON
-- [ ] Missing title
-- [ ] Missing cards
-- [ ] Empty cards array
-- [ ] Invalid difficulty
-- [ ] Flashcard flip
-- [ ] Previous card
-- [ ] Next card
-- [ ] Know action
-- [ ] Review action
-- [ ] Multiple requests
-- [ ] Mobile viewport
+- [ ] malformed JSON
+- [ ] missing title
+- [ ] missing cards
+- [ ] empty cards array
+- [ ] invalid difficulty
+- [ ] flashcard flip
+- [ ] previous card
+- [ ] next card
+- [ ] know action
+- [ ] review action
+- [ ] multiple requests
+- [ ] mobile viewport
 
 ---
 
@@ -636,36 +546,48 @@ npm run dev
 
 Frontend:
 
-`http://localhost:5173`
+```text
+http://localhost:5173
+```
 
 Backend:
 
-`http://localhost:3001`
+```text
+http://localhost:3001
+```
 
 Health check:
 
-`http://localhost:3001/api/health`
+```text
+http://localhost:3001/api/health
+```
 
 ---
 
 ## Project Status
 
-The core application is implemented with:
+The core app is implemented with:
 
 - React frontend
 - Express backend
 - Gemini API integration
-- Structured AI responses
-- Backend validation
-- Frontend validation
-- Interactive flashcards
-- Loading and error states
-- Retry handling
-- Stale-response protection
-- Responsive UI
+- structured AI responses
+- backend validation
+- frontend validation
+- interactive flashcards
+- loading and error states
+- retry handling
+- stale-response protection
+- responsive UI
 
 ---
 
 ## Author
 
 Sumanth Reddy
+
+---
+
+## License
+
+This project is licensed under the MIT License.
